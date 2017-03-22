@@ -25,7 +25,7 @@ body {
 .sidebar {
   position: absolute;
   left: 0px;
-  width: 440px;
+  width: 350px;
   top: 50px;
   bottom: 0;
   padding: 20px;
@@ -43,6 +43,18 @@ body {
   border: 0;
   color: #fff;
   display: block;
+}
+
+#calculate {
+  position: relative;
+  top: 10px;
+  padding: 4px 10px;
+}
+
+#clear {
+  position: relative;
+  top: 10px;
+  padding: 4px 10px;
 }
 
 @media screen and (min-width: 480px) and (max-width: 800px) {

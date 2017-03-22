@@ -68,7 +68,13 @@ highlight (change style in some way) the corresponding element in the sidebar.
 Moving your mouse outside of the circle should remove the highlighting.
 
 ===================== */
-
+var Stamen_TonerLite = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+  attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  subdomains: 'abcd',
+  minZoom: 0,
+  maxZoom: 18,
+  ext: 'png'
+}).addTo(map);
 // Global Variables
 
 var myRectangle;
@@ -87,13 +93,26 @@ var drawControl = new L.Control.Draw({
 
 map.addControl(drawControl);
 
+var removeLayers = function(layer){
+  _.each(myRectangles, function(shape){
+    map.removeLayer(shape);
+  });
+};
+
 // Run every time Leaflet draw creates a new layer
 
 map.on('draw:created', function (e) {
     var type = e.layerType; // The type of shape
     var layer = e.layer; // The Leaflet layer for the shape
     var id = L.stamp(layer); // The unique Leaflet ID for the layer
-
-
-
+    if (myRectangle !== undefined){
+    map.removeLayer(myRectangle);
+  }
+    //removeLayers();
+    myRectangle = layer;
+    myRectangle.addTo(map);
+    //myRectangles.push(layer);
+    $(".shape").empty(myRectangle);
+    $(".shape").append(myRectangle);
+    $(".shape").append("Current ID:" + myRectangle._leaflet_id);
 });

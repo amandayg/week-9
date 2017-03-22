@@ -115,6 +115,18 @@ Task 6: (stretch) See if you can refocus the map to roughly the bounding box of 
 
 
 ===================== */
+var currentLocation;
+var destination;
+var addMarker;
+var addressAPI = function(text){
+  return 'https://search.mapzen.com/v1/search?text='+ text + '&api_key=mapzen-TMs1oBX';
+};
+var routeAPI  = function(json){
+  return 'https://matrix.mapzen.com/optimized_route?json=' + json + '&api_key=mapzen-TMs1oBX';
+};
+var routeShape;
+var routeResult;
+
 
 var state = {
   position: {
@@ -123,11 +135,39 @@ var state = {
   }
 };
 
+var geocoder = function(geocoderurl){
+  return $.ajax(geocoderurl).done(function(data){
+    console.log(data);
+    destination = data.features[0];
+    console.log(destination);
+  });
+};
+
+var getRouteJson = function(currentLoc, requestLoc) {
+  currentLoc = {"lat": state.position.marker._latlng.lat, "lon": state.position.marker._latlng.lng};
+  requestLoc = {"lat": destination.geometry.coordinates[1], "lon": destination.geometry.coordinates[0]};
+  addMarker = L.circleMarker([requestLoc["lat"],requestLoc["lon"]], {color: "red"}).addTo(map);
+  return {"locations": [currentLoc, requestLoc],
+    "costing":"auto",
+    "directions_options": {
+      "units":"miles"
+    }
+  };
+};
+
+var getRoute = function(getrouteurl){
+    $.ajax(getrouteurl).done(function(data){
+      routeShape = decode(data.trip.legs[0].shape,6);
+      routeResult = L.polyline(routeShape, {color: '#69B0AC'}).addTo(map);
+    });
+};
+
 /* We'll use underscore's `once` function to make sure this only happens
  *  one time even if weupdate the position later
  */
 var goToOrigin = _.once(function(lat, lng) {
   map.flyTo([lat, lng], 14);
+  console.log(lat, lng);
 });
 
 
@@ -142,10 +182,10 @@ var updatePosition = function(lat, lng, updated) {
   goToOrigin(lat, lng);
 };
 
-$(document).ready(function() {
+
   /* This 'if' check allows us to safely ask for the user's current position */
   if ("geolocation" in navigator) {
-    navigator.geolocation.getCurrentPosition(function(position) {
+    navigator.geolocation.getCurrentPosition(function( position) {
       updatePosition(position.coords.latitude, position.coords.longitude, position.timestamp);
     });
   } else {
@@ -167,9 +207,14 @@ $(document).ready(function() {
   // click handler for the "calculate" button (probably you want to do something with this)
   $("#calculate").click(function(e) {
     var dest = $('#dest').val();
-    console.log(dest);
-  });
-
+    var addressurl = addressAPI(dest);
+    geocoder(addressurl).done(function() {
+      var routeurl = routeAPI(JSON.stringify(getRouteJson(currentLocation, destination)));
+      getRoute(routeurl);
+    });
 });
 
-
+$("#clear").click(function(e) {
+ map.removeLayer(addMarker);
+ map.removeLayer(routeResult);
+});
